@@ -1,204 +1,213 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>INFANITE - AI Assistant</title>
-    <style>
-        body {
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    min-height: 100vh;
-    background-color: black;
-    overflow-x: hidden;
-    color: white;
-    font-family: Arial, sans-serif;
-    text-align: center;
-    padding: 10px;
-    margin: 0;
-}
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>INFANITE - AI Assistant</title>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+  <style>
+    body {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      background-color: black;
+      overflow-x: hidden;
+      color: white;
+      font-family: Arial, sans-serif;
+      text-align: center;
+      padding: 10px;
+      margin: 0;
+    }
 
-h1 {
-    font-size: clamp(28px, 5vw, 50px);
-    margin: 10px 0;
-    letter-spacing: 2px;
-}
+    h1 {
+      font-size: clamp(28px, 5vw, 50px);
+      margin: 10px 0;
+      letter-spacing: 2px;
+    }
 
-h3 {
-    font-size: clamp(12px, 2vw, 16px);
-    margin: 10px 0;
-    text-transform: uppercase;
-}
+    h3 {
+      font-size: clamp(12px, 2vw, 16px);
+      margin: 10px 0;
+      text-transform: uppercase;
+    }
 
-h3 span {
-    color: darkred;
-    font-weight: bold;
-    text-shadow: 2px 2px 5px rgba(255, 0, 0, 0.8);
-}
+    h3 span {
+      color: darkred;
+      font-weight: bold;
+      text-shadow: 2px 2px 5px rgba(255, 0, 0, 0.8);
+    }
 
-#in {
-    color: darkred;
-    font-size: clamp(28px, 5vw, 50px);
-    font-weight: bold;
-    text-shadow: 2px 2px 6px rgb(117, 1, 1);
-}
+    #in {
+      color: darkred;
+      font-size: clamp(28px, 5vw, 50px);
+      font-weight: bold;
+      text-shadow: 2px 2px 6px rgb(117, 1, 1);
+    }
 
-#inn {
-    color: darkred;
-    font-size: clamp(20px, 4vw, 35px);
-    font-weight: bold;
-    text-shadow: 2px 2px 5px rgb(117, 1, 1);
-}
+    #inn {
+      color: darkred;
+      font-size: clamp(20px, 4vw, 35px);
+      font-weight: bold;
+      text-shadow: 2px 2px 5px rgb(117, 1, 1);
+    }
 
-h2 {
-    font-size: clamp(20px, 4vw, 35px);
-    margin: 10px 0;
-}
+    h2 {
+      font-size: clamp(20px, 4vw, 35px);
+      margin: 10px 0;
+    }
 
-canvas {
-    display: block;
-    width: 90%;
-    max-height: 50vh;
-}
+    canvas {
+      display: block;
+      width: 90%;
+      max-height: 50vh;
+    }
 
-.search-container {
-    display: flex;
-    align-items: center;
-    background: rgba(255, 255, 255, 0.92);
-    padding: 10px;
-    border-radius: 25px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-    width: min(400px, 90%);
-    transition: 0.3s;
-}
-
-.search-container:hover {
-    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
-}
-
-.search-container input {
-    flex: 1;
-    border: none;
-    outline: none;
-    padding: 10px;
-    font-size: clamp(14px, 2vw, 18px);
-    border-radius: 20px;
-}
-
-.search-container img {
-    width: clamp(25px, 5vw, 35px);
-    height: clamp(25px, 5vw, 35px);
-    margin: 0 8px;
-    cursor: pointer;
-    transition: 0.3s;
-}
-
-.search-container img:hover {
-    transform: scale(1.1);
-    opacity: 0.7;
-}
-
-/* Responsive Design */
-@media (max-width: 500px) {
     .search-container {
+      display: flex;
+      align-items: center;
+      background-color: black;
+      padding: 10px;
+      border-radius: 25px;
+      border: 2px solid #333; /* Thin black border */
+      width: min(400px, 90%);
+      transition: 0.3s;
+      flex-wrap: nowrap;
+      overflow: hidden;
+    }
+
+    .search-container input {
+      flex: 1;
+      border: none;
+      outline: none;
+      padding: 10px;
+      font-size: clamp(14px, 2vw, 18px);
+      border-radius: 20px;
+      min-width: 0;
+      background-color: #222;
+      color: white;
+    }
+
+    .search-container img {
+      width: clamp(25px, 5vw, 30px);
+      height: clamp(25px, 5vw, 30px);
+      margin-left: 8px;
+      cursor: pointer;
+      transition: 0.3s;
+      flex-shrink: 0;
+    }
+
+    .search-container img:hover {
+      transform: scale(1.1);
+      opacity: 0.7;
+    }
+
+    @media (max-width: 500px) {
+      .search-container {
         width: 95%;
         padding: 8px;
-    }
-    .search-container input {
+      }
+
+      .search-container input {
         font-size: 14px;
         padding: 8px;
-    }
-    .search-container img {
+      }
+
+      .search-container img {
         width: 25px;
         height: 25px;
+      }
     }
-}
-        
-    </style>
+  </style>
 </head>
 <body>
-    <h1><span id="in">IN</span>FANITE</h1>
-    <h3>Welcome to the <span>Future</span></h3>
-    <canvas id="infinityCanvas"></canvas>
-    <h2><span id="inn">He</span>llo, everyone</h2>
-    <div class="search-container">
-        <input type="text" id="search-box" placeholder="Search...">
-        <img src="D:\infanite\photo_icons\mice.png" alt="Voice Search" title="Voice Search" onclick="startVoiceSearch()">
-        <img src="D:\infanite\photo_icons\cam.png" alt="Camera Search" title="Image Search">
-        <img src="E:\phone 45\infa.png" alt="Custom Icon" title="Custom Feature">
-    </div>
+  <h1><span id="in">IN</span>FANITE</h1>
+  <h3>Welcome to the <span>Future</span></h3>
+  <canvas id="infinityCanvas"></canvas>
+  <h2><span id="inn">He</span>llo, everyone</h2>
+  <div class="search-container">
+    <input type="text" id="search-box" placeholder="Search..." />
+    <i class="fa fa-microphone" aria-hidden="true"></i>
+    <i class="fa fa-camera" aria-hidden="true"></i>
+    <i class="fa fa-search" aria-hidden="true"></i>
+  </div>
 
-    <script>
-        const canvas = document.getElementById("infinityCanvas");
-        const ctx = canvas.getContext("2d");
+  <script>
+    const canvas = document.getElementById("infinityCanvas");
+    const ctx = canvas.getContext("2d");
 
-        function resizeCanvas() {
-            canvas.width = window.innerWidth * 0.9;
-            canvas.height = Math.min(window.innerHeight * 0.4, 300);
-        }
-        resizeCanvas();
-        window.addEventListener('resize', resizeCanvas);
+    function resizeCanvas() {
+      canvas.width = window.innerWidth * 0.9;
+      canvas.height = Math.min(window.innerHeight * 0.4, 300);
+    }
+    resizeCanvas();
+    window.addEventListener("resize", resizeCanvas);
 
-        let angle = 0;
-        let snakeTrail = [];
-        const maxTrailLength = 50; 
+    let angle = 0;
+    let snakeTrail = [];
+    const maxTrailLength = 50;
 
-        function drawInfinity() {
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
+    function drawInfinity() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-            ctx.lineWidth = 5;
-            ctx.strokeStyle = "rgba(180, 180, 180, 0.7)"; 
-            
-            ctx.beginPath();
-            for (let t = 0; t < Math.PI * 2; t += 0.02) {
-                let x = 150 * Math.sin(t) / (1 + Math.cos(t) ** 2) + canvas.width / 2;
-                let y = 150 * Math.sin(t) * Math.cos(t) / (1 + Math.cos(t) ** 2) + canvas.height / 2;
-                if (t === 0) ctx.moveTo(x, y);
-                else ctx.lineTo(x, y);
-            }
-            ctx.stroke();
+      ctx.lineWidth = 5;
+      ctx.strokeStyle = "rgba(180, 180, 180, 0.7)";
 
-            let movingT = angle % (Math.PI * 2);
-            let movingX = 150 * Math.sin(movingT) / (1 + Math.cos(movingT) ** 2) + canvas.width / 2;
-            let movingY = 150 * Math.sin(movingT) * Math.cos(movingT) / (1 + Math.cos(movingT) ** 2) + canvas.height / 2;
-            
-            snakeTrail.push({ x: movingX, y: movingY });
-            if (snakeTrail.length > maxTrailLength) {
-                snakeTrail.shift();
-            }
+      ctx.beginPath();
+      for (let t = 0; t < Math.PI * 2; t += 0.02) {
+        let x = 150 * Math.sin(t) / (1 + Math.cos(t) ** 2) + canvas.width / 2;
+        let y = 150 * Math.sin(t) * Math.cos(t) / (1 + Math.cos(t) ** 2) + canvas.height / 2;
+        if (t === 0) ctx.moveTo(x, y);
+        else ctx.lineTo(x, y);
+      }
+      ctx.stroke();
 
-            for (let i = 0; i < snakeTrail.length; i++) {
-                let opacity = (i + 1) / snakeTrail.length;
-                
-                // Create gradient for glowing effect
-                let gradient = ctx.createRadialGradient(snakeTrail[i].x, snakeTrail[i].y, 0, snakeTrail[i].x, snakeTrail[i].y, 8);
-                gradient.addColorStop(0, `rgba(255, 255, 255, ${opacity})`); 
-                gradient.addColorStop(0.5, `rgba(255, 255, 255, ${opacity * 0.8})`);
-                gradient.addColorStop(1, `rgba(255, 255, 255, 0)`); 
+      let movingT = angle % (Math.PI * 2);
+      let movingX = 150 * Math.sin(movingT) / (1 + Math.cos(movingT) ** 2) + canvas.width / 2;
+      let movingY = 150 * Math.sin(movingT) * Math.cos(movingT) / (1 + Math.cos(movingT) ** 2) + canvas.height / 2;
 
-                ctx.fillStyle = gradient; 
-                
-                ctx.beginPath();
-                ctx.arc(snakeTrail[i].x, snakeTrail[i].y, 6, 0, Math.PI * 2); 
-                ctx.fill();
-            }
+      snakeTrail.push({ x: movingX, y: movingY });
+      if (snakeTrail.length > maxTrailLength) {
+        snakeTrail.shift();
+      }
 
-            angle += 0.03; 
-            setTimeout(drawInfinity, 16);
-        }
+      for (let i = 0; i < snakeTrail.length; i++) {
+        let opacity = (i + 1) / snakeTrail.length;
+        let gradient = ctx.createRadialGradient(
+          snakeTrail[i].x,
+          snakeTrail[i].y,
+          0,
+          snakeTrail[i].x,
+          snakeTrail[i].y,
+          8
+        );
+        gradient.addColorStop(0, `rgba(255, 255, 255, ${opacity})`);
+        gradient.addColorStop(0.5, `rgba(255, 255, 255, ${opacity * 0.8})`);
+        gradient.addColorStop(1, `rgba(255, 255, 255, 0)`);
+        ctx.fillStyle = gradient;
+        ctx.beginPath();
+        ctx.arc(snakeTrail[i].x, snakeTrail[i].y, 6, 0, Math.PI * 2);
+        ctx.fill();
+      }
 
-        drawInfinity();
+      angle += 0.03;
+      setTimeout(drawInfinity, 16);
+    }
 
-        function searchFunction() {
-            let searchQuery = document.getElementById("searchBox").value;
-            if (searchQuery) {
-                window.open(`https://www.google.com/search?q=${encodeURIComponent(searchQuery)}`, "_blank"); 
-            } else {
-                alert("Please enter a search query!");
-            }
-        }
-    </script>
+    drawInfinity();
+
+    function startVoiceSearch() {
+      alert("Voice Search Clicked (Functionality Coming Soon!)");
+    }
+
+    function startImageSearch() {
+      alert("Image Search Clicked (Functionality Coming Soon!)");
+    }
+
+    function startCustomSearch() {
+      alert("Custom Feature Clicked (Functionality Coming Soon!)");
+    }
+  </script>
 </body>
 </html>
