@@ -1,12 +1,60 @@
-from flask import Flask, render_template
-import speech_recognition as sr
+from flask import Flask, render_template, request, jsonify
 import pyttsx3
+import speech_recognition as sr
+
+app = Flask(__name__)
+
+# Initialize speech engine
+engine = pyttsx3.init()
+engine.setProperty('rate', 170)
+engine.setProperty('volume', 1.0)
+
+def speak(text):
+    engine.say(text)
+    engine.runAndWait()
+
+def listen():
+    r = sr.Recognizer()
+    with sr.Microphone() as source:
+        print("Listening...")
+        r.pause_threshold = 1
+        audio = r.listen(source)
+    try:
+        print("Recognizing...")
+        query = r.recognize_google(audio, language='en-in')
+        print(f"User said: {query}\n")
+    except Exception as e:
+        print("Say that again please...")
+        return "None"
+    return query
+
+@app.route("/")
+def index():
+    return render_template("infa.html")  # HTML must be in 'templates' folder
+
+@app.route("/query", methods=["POST"])
+def handle_query():
+    user_input = request.json.get("query", "").lower()
+    if user_input:
+        speak(f"You said: {user_input}")
+        return jsonify({"response": f"You said: {user_input}"})
+    else:
+        return jsonify({"response": "Please enter something."})
+
+if __name__ == "__main__":
+    app.run(debug=True)
+
+
+from flask import Flask, render_template, request, jsonify
+import pyttsx3
+import speech_recognition as sr
 import os
 import socket
 import webbrowser
 import datetime
 
 app = Flask(__name__)
+
 engine = pyttsx3.init()
 engine.setProperty('rate', 150)
 recognizer = sr.Recognizer()
@@ -14,7 +62,6 @@ recognizer = sr.Recognizer()
 def speak(text):
     engine.say(text)
     engine.runAndWait()
-    engine.stop()
 
 def check_internet():
     try:
@@ -30,15 +77,14 @@ def listen():
         try:
             audio = recognizer.listen(source, timeout=5)
         except sr.WaitTimeoutError:
-            print("No voice detected, try again.")
+            print("No voice detected.")
             return ""
     try:
         if check_internet():
             command = recognizer.recognize_google(audio)
-            print("Google (Online) recognized:", command)
         else:
             command = recognizer.recognize_sphinx(audio)
-            print("Sphinx (Offline) recognized:", command)
+        print("Recognized:", command)
         return command.lower()
     except sr.UnknownValueError:
         return ""
@@ -169,9 +215,15 @@ def execute_command(command):
 def index():
     return render_template("infa.html")
 
+@app.route("/query", methods=["POST"])
+def handle_query():
+    user_input = request.json.get("query", "").lower()
+    if user_input:
+        speak(f"You said: {user_input}")
+        execute_command(user_input)
+        return jsonify({"response": f"Executed: {user_input}"})
+    return jsonify({"response": "No input received."})
+
 if __name__ == "__main__":
     speak("Hello Subh! How can I assist you?")
-    while True:
-        command = listen()
-        if command:
-            execute_command(command)
+    app.run(debug=True)
