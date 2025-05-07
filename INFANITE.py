@@ -1,110 +1,47 @@
-from flask import Flask, render_template, request, jsonify
-import pyttsx3
 import speech_recognition as sr
-
-app = Flask(__name__)
+import pyttsx3
+import os
+import webbrowser
+import datetime
+import pyautogui
+import platform
+import psutil
+import subprocess
+import keyboard
+import time
 
 # Initialize speech engine
 engine = pyttsx3.init()
-engine.setProperty('rate', 170)
-engine.setProperty('volume', 1.0)
 
+# Function to speak
 def speak(text):
     engine.say(text)
     engine.runAndWait()
 
+# Function to listen to user command
 def listen():
-    r = sr.Recognizer()
+    recognizer = sr.Recognizer()
     with sr.Microphone() as source:
-        print("Listening...")
-        r.pause_threshold = 1
-        audio = r.listen(source)
+        print("Listening for command...")
+        recognizer.adjust_for_ambient_noise(source)
+        audio = recognizer.listen(source)
+
     try:
-        print("Recognizing...")
-        query = r.recognize_google(audio, language='en-in')
-        print(f"User said: {query}\n")
-    except Exception as e:
-        print("Say that again please...")
-        return "None"
-    return query
-
-@app.route("/")
-def index():
-    return render_template("infa.html")  # HTML must be in 'templates' folder
-
-@app.route("/query", methods=["POST"])
-def handle_query():
-    user_input = request.json.get("query", "").lower()
-    if user_input:
-        speak(f"You said: {user_input}")
-        return jsonify({"response": f"You said: {user_input}"})
-    else:
-        return jsonify({"response": "Please enter something."})
-
-if __name__ == "__main__":
-    app.run(debug=True)
-
-
-from flask import Flask, render_template, request, jsonify
-import pyttsx3
-import speech_recognition as sr
-import os
-import socket
-import webbrowser
-import datetime
-
-app = Flask(__name__)
-
-engine = pyttsx3.init()
-engine.setProperty('rate', 150)
-recognizer = sr.Recognizer()
-
-def speak(text):
-    engine.say(text)
-    engine.runAndWait()
-
-def check_internet():
-    try:
-        socket.create_connection(("8.8.8.8", 53), timeout=1)
-        return True
-    except OSError:
-        return False
-
-def listen():
-    with sr.Microphone() as source:
-        print("Listening...")
-        recognizer.adjust_for_ambient_noise(source, duration=0.5)
-        try:
-            audio = recognizer.listen(source, timeout=5)
-        except sr.WaitTimeoutError:
-            print("No voice detected.")
-            return ""
-    try:
-        if check_internet():
-            command = recognizer.recognize_google(audio)
-        else:
-            command = recognizer.recognize_sphinx(audio)
-        print("Recognized:", command)
-        return command.lower()
+        command = recognizer.recognize_google(audio).lower()
+        print(f"Command received: {command}")
+        return command
     except sr.UnknownValueError:
+        print("Sorry, I couldn't understand that.")
+        speak("Sorry, I couldn't understand that.")
         return ""
     except sr.RequestError:
-        return "Speech recognition service unavailable."
+        print("Sorry, the speech service is unavailable.")
+        speak("Sorry, the speech service is unavailable.")
+        return ""
 
-def execute_command(command):
-    nircmd_path = '"C:\\Program Files\\nircmd\\nircmd.exe"'
-
-    exit_commands = ["exit", "shutdown", "off", "band ho ja", "jao", "close", "stop"]
-    if any(word in command for word in exit_commands):
-        speak("Okay Subh, shutting down. Goodbye!")
-        exit()
-
-    elif "search" in command or "google" in command:
-        query = command.replace("search", "").replace("google", "").strip()
-        speak(f"Searching Google for {query}")
-        webbrowser.open(f"https://www.google.com/search?q={query}")
-
-    elif "open youtube" in command:
+# Function to perform system operations
+def perform_task(command):
+    if "open youtube" in command:
         speak("Opening YouTube")
         webbrowser.open("https://www.youtube.com")
 
@@ -112,9 +49,10 @@ def execute_command(command):
         speak("Opening Google")
         webbrowser.open("https://www.google.com")
 
-    elif "open facebook" in command:
-        speak("Opening Facebook")
-        webbrowser.open("https://www.facebook.com")
+    elif "search" in command or "google" in command:
+        query = command.replace("search", "").replace("google", "").strip()
+        speak(f"Searching Google for {query}")
+        webbrowser.open(f"https://www.google.com/search?q={query}")
 
     elif "shutdown system" in command:
         speak("Shutting down your system")
@@ -124,7 +62,7 @@ def execute_command(command):
         speak("Restarting your system")
         os.system("shutdown /r /t 1")
 
-    elif "log off" in command or "sign out" in command:
+    elif "log off" in command:
         speak("Logging off")
         os.system("shutdown -l")
 
@@ -138,59 +76,23 @@ def execute_command(command):
 
     elif "mute system" in command:
         speak("Muting system")
-        os.system(f"{nircmd_path} mutesysvolume 1")
+        os.system("nircmd.exe mutesysvolume 1")
 
     elif "unmute system" in command:
         speak("Unmuting system")
-        os.system(f"{nircmd_path} mutesysvolume 0")
-
-    elif "volume up" in command:
-        speak("Increasing volume")
-        os.system(f"{nircmd_path} changesysvolume 5000")
-
-    elif "volume down" in command:
-        speak("Decreasing volume")
-        os.system(f"{nircmd_path} changesysvolume -5000")
-
-    elif "battery status" in command:
-        speak("Checking battery status")
-        os.system("WMIC PATH Win32_Battery Get EstimatedChargeRemaining")
-
-    elif "open downloads" in command:
-        speak("Opening Downloads folder")
-        os.system("explorer shell:Downloads")
-
-    elif "open documents" in command:
-        speak("Opening Documents folder")
-        os.system("explorer shell:Personal")
-
-    elif "open pictures" in command:
-        speak("Opening Pictures folder")
-        os.system("explorer shell:My Pictures")
-
-    elif "lock screen" in command:
-        speak("Locking screen")
-        os.system("rundll32.exe user32.dll,LockWorkStation")
-
-    elif "switch user" in command:
-        speak("Switching user")
-        os.system("tsdiscon")
-
-    elif "open notepad" in command:
-        speak("Opening Notepad")
-        os.system("notepad")
+        os.system("nircmd.exe mutesysvolume 0")
 
     elif "open calculator" in command:
         speak("Opening Calculator")
         os.system("calc")
 
-    elif "open cmd" in command or "open command prompt" in command:
+    elif "open notepad" in command:
+        speak("Opening Notepad")
+        os.system("notepad")
+
+    elif "open command prompt" in command:
         speak("Opening Command Prompt")
         os.system("start cmd")
-
-    elif "empty recycle bin" in command:
-        speak("Emptying Recycle Bin")
-        os.system("PowerShell.exe -NoProfile -Command Clear-RecycleBin -Force")
 
     elif "time" in command:
         now = datetime.datetime.now().strftime("%H:%M")
@@ -199,6 +101,10 @@ def execute_command(command):
     elif "date" in command:
         today = datetime.datetime.now().strftime("%A, %d %B %Y")
         speak(f"Today's date is {today}")
+
+    elif "open downloads" in command:
+        speak("Opening Downloads folder")
+        os.system("explorer shell:Downloads")
 
     elif "create note" in command or "take note" in command:
         speak("What should I write?")
@@ -211,19 +117,17 @@ def execute_command(command):
     else:
         speak("Sorry, I didn't understand that command.")
 
-@app.route("/")
-def index():
-    return render_template("infa.html")
+# Main program loop
+def main():
+    speak("Hello, I am your assistant. How can I help you?")
+    while True:
+        command = listen()
 
-@app.route("/query", methods=["POST"])
-def handle_query():
-    user_input = request.json.get("query", "").lower()
-    if user_input:
-        speak(f"You said: {user_input}")
-        execute_command(user_input)
-        return jsonify({"response": f"Executed: {user_input}"})
-    return jsonify({"response": "No input received."})
+        if "exit" in command or "quit" in command or "goodbye" in command:
+            speak("Goodbye, have a great day!")
+            break
+
+        perform_task(command)
 
 if __name__ == "__main__":
-    speak("Hello Subh! How can I assist you?")
-    app.run(debug=True)
+    main()
