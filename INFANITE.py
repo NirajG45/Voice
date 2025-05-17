@@ -10,25 +10,26 @@ import subprocess
 import keyboard
 import time
 
-# Initialize speech engine
+# -------------------- Initialize TTS Engine --------------------
 engine = pyttsx3.init()
 
-# Function to speak
 def speak(text):
+    """Speak the given text."""
     engine.say(text)
     engine.runAndWait()
 
-# Function to listen to user command
+# -------------------- Listen from Microphone --------------------
 def listen():
+    """Listen to the user's voice command and return as text."""
     recognizer = sr.Recognizer()
     with sr.Microphone() as source:
-        print("Listening for command...")
+        print("🎤 Listening for command...")
         recognizer.adjust_for_ambient_noise(source)
         audio = recognizer.listen(source)
 
     try:
         command = recognizer.recognize_google(audio).lower()
-        print(f"Command received: {command}")
+        print(f"📥 Command received: {command}")
         return command
     except sr.UnknownValueError:
         print("Sorry, I couldn't understand that.")
@@ -39,8 +40,10 @@ def listen():
         speak("Sorry, the speech service is unavailable.")
         return ""
 
-# Function to perform system operations
+# -------------------- Task Dispatcher --------------------
 def perform_task(command):
+    """Perform action based on the spoken command."""
+    
     if "open youtube" in command:
         speak("Opening YouTube")
         webbrowser.open("https://www.youtube.com")
@@ -51,8 +54,11 @@ def perform_task(command):
 
     elif "search" in command or "google" in command:
         query = command.replace("search", "").replace("google", "").strip()
-        speak(f"Searching Google for {query}")
-        webbrowser.open(f"https://www.google.com/search?q={query}")
+        if query:
+            speak(f"Searching Google for {query}")
+            webbrowser.open(f"https://www.google.com/search?q={query}")
+        else:
+            speak("What do you want me to search for?")
 
     elif "shutdown system" in command:
         speak("Shutting down your system")
@@ -94,7 +100,7 @@ def perform_task(command):
         speak("Opening Command Prompt")
         os.system("start cmd")
 
-    elif "time" in command:
+    elif "aaj ka time bato" in command:
         now = datetime.datetime.now().strftime("%H:%M")
         speak(f"The time is {now}")
 
@@ -102,7 +108,7 @@ def perform_task(command):
         today = datetime.datetime.now().strftime("%A, %d %B %Y")
         speak(f"Today's date is {today}")
 
-    elif "open downloads" in command:
+    elif "open download" in command:
         speak("Opening Downloads folder")
         os.system("explorer shell:Downloads")
 
@@ -117,17 +123,18 @@ def perform_task(command):
     else:
         speak("Sorry, I didn't understand that command.")
 
-# Main program loop
+# -------------------- Main Loop --------------------
 def main():
-    speak("Hello, I am your assistant. How can I help you?")
+    speak("Hello, I am INFANITE. How can I help you?")
     while True:
         command = listen()
 
-        if "exit" in command or "quit" in command or "goodbye" in command:
+        if any(exit_cmd in command for exit_cmd in ["exit", "quit", "goodbye"]):
             speak("Goodbye, have a great day!")
             break
 
         perform_task(command)
 
+# -------------------- Entry Point --------------------
 if __name__ == "__main__":
     main()
