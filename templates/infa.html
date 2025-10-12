@@ -272,6 +272,33 @@ document.getElementById("search-box").addEventListener("keydown", function(event
   }
 });
 
+// Enhanced startCustomSearch function with async fetch
+async function startCustomSearch() {
+  const query = document.getElementById("search-box").value.trim();
+  const output = document.getElementById("output");
+
+  if (query === "") {
+    output.textContent = "Please type something first.";
+    return;
+  }
+
+  output.textContent = "Processing your request...";
+
+  try {
+    const res = await fetch("/process", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ command: query })
+    });
+
+    const data = await res.json();
+    output.textContent = data.response;
+  } catch (err) {
+    console.error(err);
+    output.textContent = "Error: Could not connect to Nex Assistant.";
+  }
+}
+
 </script>
 </body>
 </html>
