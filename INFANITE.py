@@ -21,7 +21,7 @@ def speak(text):
 @app.route("/")
 def home():
     # Serve your HTML file
-    return app.send_static_file("infa.html")
+    return render_template("infa.html")
 
 @app.route("/process", methods=["POST"])
 def process():
