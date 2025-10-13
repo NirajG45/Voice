@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>INFANITE - AI Assistant</title>
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+
   <style>
     :root {
       --main-red: darkred;
@@ -13,6 +14,7 @@
       --border-color: #333;
       --text-white: #fff;
       --gray: rgba(169, 169, 169, 0.8);
+      --menu-bg: rgba(30, 30, 30, 0.95);
     }
 
     body {
@@ -83,11 +85,12 @@
 
     .canvas-wrapper.move-top-right {
       position: fixed;
-      top: 10px;
-      right: 10px;
+      top: 15px;
+      right: 15px;
       width: 150px;
       height: 150px;
       z-index: 999;
+      transition: all 0.8s ease;
     }
 
     canvas {
@@ -109,13 +112,15 @@
       display: flex;
       align-items: center;
       background-color: var(--bg-black);
-      padding: 10px;
+      padding: 10px 14px;
       border-radius: 25px;
       border: 2px solid var(--border-color);
       width: min(600px, 95%);
       gap: 10px;
       flex-wrap: nowrap;
       box-sizing: border-box;
+      transition: all 0.3s ease;
+      position: relative;
     }
 
     .search-container input {
@@ -123,30 +128,79 @@
       border: none;
       outline: none;
       padding: 10px;
-      font-size: clamp(14px, 4vw, 18px);
+      font-size: clamp(14px, 3.5vw, 18px);
       border-radius: 20px;
-      min-width: 0;
       background-color: var(--input-bg);
       color: white;
     }
 
-    .search-container i {
-      font-size: clamp(18px, 5vw, 22px);
+    .burger-btn {
+      font-size: 22px;
       color: white;
       cursor: pointer;
-      transition: transform 0.3s, opacity 0.3s;
-      flex-shrink: 0;
+      padding: 8px 12px;
+      border-radius: 10px;
+      transition: 0.3s;
+      background: rgba(255,255,255,0.06);
+      position: relative;
     }
 
-    .search-container i:hover {
-      transform: scale(1.1);
-      opacity: 0.7;
+    .burger-btn:hover {
+      background: rgba(255,255,255,0.15);
+    }
+
+    /* Menu now opens ABOVE burger */
+    .menu {
+      position: absolute;
+      bottom: 110%;
+      right: 0;
+      background: var(--menu-bg);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 15px;
+      display: none;
+      flex-direction: column;
+      gap: 10px;
+      padding: 10px;
+      width: 160px;
+      backdrop-filter: blur(10px);
+      animation: slideUp 0.3s ease;
+      z-index: 1000;
+      transform-origin: bottom right;
+    }
+
+    .menu.active {
+      display: flex;
+    }
+
+    .menu button {
+      background: none;
+      border: none;
+      color: var(--text-white);
+      font-size: 16px;
+      padding: 10px;
+      border-radius: 10px;
+      cursor: pointer;
+      text-align: left;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      transition: 0.3s;
+    }
+
+    .menu button:hover {
+      background: rgba(255, 0, 0, 0.1);
+      color: var(--main-red);
+      transform: translateX(3px);
+    }
+
+    @keyframes slideUp {
+      from { opacity: 0; transform: translateY(10px) scale(0.95); }
+      to { opacity: 1; transform: translateY(0) scale(1); }
     }
 
     #output {
-  position: relative;
-  order: -1;
-
+      position: relative;
+      order: -1;
       text-align: center;
       margin-top: 20px;
       font-size: clamp(16px, 3vw, 22px);
@@ -156,14 +210,26 @@
     }
 
     @media (max-width: 600px) {
-      .search-container {
-        flex-direction: row;
-        justify-content: space-between;
-        gap: 5px;
+      .canvas-wrapper.move-top-right {
+        width: 120px;
+        height: 120px;
+        top: 10px;
+        right: 10px;
+      }
+
+      .header.move-top-left {
+        top: 8px;
+        left: 10px;
+        transform: scale(0.9);
+      }
+
+      .menu {
+        width: 140px;
       }
     }
   </style>
 </head>
+
 <body>
   <div class="main">
     <div class="header" id="header">
@@ -179,14 +245,19 @@
   <div class="search-wrapper">
     <div class="search-container">
       <input type="text" id="search-box" placeholder="Search..." />
-      <i class="fa fa-microphone" onclick="startVoiceSearch()"></i>
-      <i class="fa fa-camera" onclick="startImageSearch()"></i>
-      <i class="fa fa-search" onclick="startCustomSearch()"></i>
+      <div class="burger-btn" id="burgerMenu"><i class="fa fa-bars"></i></div>
+      <div class="menu" id="menu">
+        <button onclick="startVoiceSearch()"><i class="fa fa-microphone"></i> Voice</button>
+        <button onclick="startImageSearch()"><i class="fa fa-camera"></i> Camera</button>
+        <button onclick="activateInfinity()"><i class="fa fa-infinity"></i> INFANITE</button>
+        <button onclick="startCustomSearch()"><i class="fa fa-search"></i> Search</button>
+      </div>
     </div>
     <div id="output"></div>
   </div>
 
   <script>
+    // Infinity animation (unchanged)
     const canvas = document.getElementById("infinityCanvas");
     const ctx = canvas.getContext("2d");
 
@@ -198,41 +269,37 @@
 
     let angle = 0;
     let trail = [];
-    const maxTrail = 160; // Increased trail
+    const maxTrail = 160;
 
     function drawInfinity() {
       resizeCanvas();
       ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-      const w = canvas.width;
-      const h = canvas.height;
+      const w = canvas.width, h = canvas.height;
       const scale = Math.min(w, h) / 2.2;
-      const dotRadius = Math.max(2, scale * 0.045); // Radius adjusts to loop size
+      const dotRadius = Math.max(2, scale * 0.045);
 
       ctx.lineWidth = 2;
       ctx.strokeStyle = "rgba(169, 169, 169, 0.8)";
       ctx.beginPath();
-
       for (let t = 0; t <= Math.PI * 2; t += 0.02) {
-        const x = scale * Math.sin(t) / (1 + Math.cos(t) ** 2) + w / 2;
-        const y = scale * Math.sin(t) * Math.cos(t) / (1 + Math.cos(t) ** 2) + h / 2;
+        const x = scale * Math.sin(t) / (1 + Math.cos(t)**2) + w/2;
+        const y = scale * Math.sin(t) * Math.cos(t) / (1 + Math.cos(t)**2) + h/2;
         if (t === 0) ctx.moveTo(x, y);
         else ctx.lineTo(x, y);
       }
       ctx.stroke();
 
       const t = angle % (Math.PI * 2);
-      const x = scale * Math.sin(t) / (1 + Math.cos(t) ** 2) + w / 2;
-      const y = scale * Math.sin(t) * Math.cos(t) / (1 + Math.cos(t) ** 2) + h / 2;
-
-      trail.push({ x, y });
+      const x = scale * Math.sin(t) / (1 + Math.cos(t)**2) + w/2;
+      const y = scale * Math.sin(t) * Math.cos(t) / (1 + Math.cos(t)**2) + h/2;
+      trail.push({x, y});
       if (trail.length > maxTrail) trail.shift();
 
       for (let i = 0; i < trail.length; i++) {
         const point = trail[i];
         const opacity = (i + 1) / trail.length;
         ctx.beginPath();
-        ctx.fillStyle = `rgba(169, 169, 169, ${opacity})`;
+        ctx.fillStyle = `rgba(169,169,169,${opacity})`;
         ctx.shadowBlur = 10;
         ctx.shadowColor = "rgba(169,169,169,0.4)";
         ctx.arc(point.x, point.y, dotRadius, 0, 2 * Math.PI);
@@ -247,58 +314,67 @@
     drawInfinity();
     window.addEventListener("resize", resizeCanvas);
 
-    function startVoiceSearch() {
-      document.getElementById("output").textContent = "Voice search activated.";
-    }
-
-    function startImageSearch() {
-      document.getElementById("output").textContent = "Image search activated.";
-    }
-
-    function startCustomSearch() {
+    async function startCustomSearch() {
+      const query = document.getElementById("search-box").value.trim();
+      const output = document.getElementById("output");
       const header = document.getElementById("header");
       const canvasWrapper = document.getElementById("canvasWrapper");
+
       header.classList.add("move-top-left");
       canvasWrapper.classList.add("move-top-right");
 
-      const query = document.getElementById("search-box").value;
-      document.getElementById("output").textContent = `Showing results for: "${query}"`;
+      if (query === "") {
+        output.textContent = "Please type something first.";
+        return;
+      }
+
+      output.textContent = "Processing your request...";
+      try {
+        const res = await fetch("/process", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ command: query })
+        });
+        const data = await res.json();
+        output.textContent = data.response;
+      } catch (err) {
+        console.error(err);
+        output.textContent = "Error: Could not connect to INFANITE Assistant.";
+      }
     }
-  
-document.getElementById("search-box").addEventListener("keydown", function(event) {
-  if (event.key === "Enter") {
-    event.preventDefault();
-    startCustomSearch();
-  }
-});
 
-// Enhanced startCustomSearch function with async fetch
-async function startCustomSearch() {
-  const query = document.getElementById("search-box").value.trim();
-  const output = document.getElementById("output");
-
-  if (query === "") {
-    output.textContent = "Please type something first.";
-    return;
-  }
-
-  output.textContent = "Processing your request...";
-
-  try {
-    const res = await fetch("/process", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ command: query })
+    document.getElementById("search-box").addEventListener("keydown", e => {
+      if (e.key === "Enter") {
+        e.preventDefault();
+        startCustomSearch();
+      }
     });
 
-    const data = await res.json();
-    output.textContent = data.response;
-  } catch (err) {
-    console.error(err);
-    output.textContent = "Error: Could not connect to Nex Assistant.";
-  }
-}
+    // Burger dropdown logic
+    const burgerMenu = document.getElementById("burgerMenu");
+    const menu = document.getElementById("menu");
 
-</script>
+    burgerMenu.addEventListener("click", () => {
+      menu.classList.toggle("active");
+    });
+
+    document.addEventListener("click", (e) => {
+      if (!burgerMenu.contains(e.target) && !menu.contains(e.target)) {
+        menu.classList.remove("active");
+      }
+    });
+
+    function startVoiceSearch() {
+      document.getElementById("output").textContent = "🎤 Voice search activated...";
+    }
+
+    function startImageSearch() {
+      document.getElementById("output").textContent = "📷 Image search feature coming soon...";
+    }
+
+    function activateInfinity() {
+      document.getElementById("output").textContent = "♾️ INFANITE Voice Assistant activated.";
+    }
+  </script>
 </body>
 </html>
