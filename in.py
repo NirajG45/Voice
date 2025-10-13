@@ -5,27 +5,24 @@ from googlesearch import search
 import requests
 from bs4 import BeautifulSoup
 import os
-os.environ["OPENAI_API_KEY"] = "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"
 import openai
-
-# ------------------------------
-# Load API Keys from Environment
-# ------------------------------
-openai.api_key = os.getenv("OPENAI_API_KEY")
-NEWS_API_KEY = os.getenv("NEWS_API_KEY")
-WEATHER_API_KEY = os.getenv("WEATHER_API_KEY")
 
 app = Flask(__name__, static_folder='static', template_folder='.')
 
 # ------------------------------
-# Home Route
+# 🔐 OpenAI Setup (Optional)
+# ------------------------------
+openai.api_key = os.getenv("OPENAI_API_KEY")
+
+# ------------------------------
+# 🏠 Home Route
 # ------------------------------
 @app.route('/')
 def home():
     return render_template('infa2.html')
 
 # ------------------------------
-# Main Smart Search / AI Logic
+# 🧠 Smart Processing Route
 # ------------------------------
 @app.route('/process', methods=['POST'])
 def process_command():
@@ -34,26 +31,26 @@ def process_command():
         command = data.get('command', '').strip()
 
         if not command:
-            return jsonify({"response": "Please enter something to search!"})
+            return jsonify({"response": "❌ Please enter something to search!"})
 
         query = command.lower()
 
-        # Basic Conversational Responses
+        # --- Simple Conversational Responses ---
         if query in ['hi', 'hello', 'hey']:
-            return jsonify({"response": "Hello! I’m INFANITE — your intelligent AI assistant. Ask me anything!"})
+            return jsonify({"response": "👋 Hello! I’m INFANITE — your intelligent AI assistant. Ask me anything!"})
 
         if 'time' in query:
-            return jsonify({"response": f"Current time: {datetime.now().strftime('%I:%M:%S %p')}"})
+            return jsonify({"response": f"🕒 Current time: {datetime.now().strftime('%I:%M:%S %p')}"})
 
         if 'date' in query:
-            return jsonify({"response": f"Today’s date: {datetime.now().strftime('%A, %d %B %Y')}"})
+            return jsonify({"response": f"📅 Today’s date is: {datetime.now().strftime('%A, %d %B %Y')}"})
 
         if 'who are you' in query or 'your name' in query:
-            return jsonify({"response": "I am INFANITE — your personal AI assistant powered by GPT, Wikipedia, Google & APIs!"})
+            return jsonify({"response": "🤖 I am INFANITE — your personal AI assistant powered by Wikipedia & Google!"})
 
         if 'help' in query:
             help_text = (
-                "Try asking me things like:\n"
+                "🧭 Try asking me things like:\n"
                 "- What is Artificial Intelligence?\n"
                 "- Who is Sundar Pichai?\n"
                 "- Latest news about AI\n"
@@ -63,73 +60,19 @@ def process_command():
             return jsonify({"response": help_text})
 
         # ------------------------------
-        # Weather Check
+        # 1️⃣ Wikipedia Summary
         # ------------------------------
-        if 'weather' in query:
-            try:
-                city = query.replace("weather in", "").replace("weather", "").strip()
-                if not city:
-                    return jsonify({"response": "Please specify a city, e.g. 'weather in Delhi'."})
-
-                weather_url = f"https://api.openweathermap.org/data/2.5/weather?q={city}&appid={WEATHER_API_KEY}&units=metric"
-                res = requests.get(weather_url).json()
-
-                if res.get("cod") != 200:
-                    return jsonify({"response": f"Could not find weather for '{city}'."})
-
-                temp = res["main"]["temp"]
-                desc = res["weather"][0]["description"].capitalize()
-                humidity = res["main"]["humidity"]
-                wind = res["wind"]["speed"]
-
-                weather_text = (
-                    f"Weather in {city.title()}:\n"
-                    f"Temperature: {temp}°C\n"
-                    f"Condition: {desc}\n"
-                    f"Humidity: {humidity}%\n"
-                    f"Wind: {wind} m/s"
-                )
-                return jsonify({"response": weather_text})
-            except Exception as e:
-                print("Weather error:", e)
-                return jsonify({"response": "Could not fetch weather right now."})
-
-        # ------------------------------
-        # News Check
-        # ------------------------------
-        if 'news' in query:
-            try:
-                topic = query.replace("news", "").strip() or "latest"
-                url = f"https://newsapi.org/v2/everything?q={topic}&apiKey={NEWS_API_KEY}&language=en&pageSize=3"
-                res = requests.get(url).json()
-
-                if res["status"] != "ok" or not res["articles"]:
-                    return jsonify({"response": f"No news found for '{topic}'."})
-
-                articles = res["articles"][:3]
-                news_list = "\n\n".join([
-                    f"{a['title']}\n{a.get('description', 'No description.')}\n{a['url']}"
-                    for a in articles
-                ])
-                return jsonify({"response": f"Top News on {topic.title()}:\n\n{news_list}"})
-            except Exception as e:
-                print("News error:", e)
-                return jsonify({"response": "Could not fetch news right now."})
-
-        # ------------------------------
-        # Wikipedia Summary
-        # ------------------------------
+        wiki_answer = ""
         try:
             wikipedia.set_lang("en")
-            summary = wikipedia.summary(command, sentences=3, auto_suggest=True)
-            return jsonify({"response": f"From Wikipedia:\n{summary}"})
+            wiki_answer = wikipedia.summary(command, sentences=3, auto_suggest=True)
         except wikipedia.exceptions.DisambiguationError:
-            pass
+            wiki_answer = "⚠️ Multiple entries found on Wikipedia. Try being more specific."
         except wikipedia.exceptions.PageError:
-            pass
+            wiki_answer = ""
 
         # ------------------------------
-        # Google Search Results
+        # 2️⃣ Google Search (top 3 results)
         # ------------------------------
         google_data = []
         try:
@@ -141,58 +84,99 @@ def process_command():
                     title = soup.title.string.strip() if soup.title else "No Title"
                     desc_tag = soup.find('meta', attrs={'name': 'description'})
                     desc = desc_tag['content'] if desc_tag and 'content' in desc_tag.attrs else "No description available."
-                    google_data.append(f"{title}\n{desc}\n{url}\n")
+                    google_data.append(f"🔗 **{title}**\n{desc}\n🌐 {url}\n")
                 except Exception:
                     continue
         except Exception:
             pass
 
         # ------------------------------
-        # GPT AI Assistant Response (OpenAI v2+)
+        # 3️⃣ GPT AI (Optional) if key present
         # ------------------------------
         gpt_answer = ""
-        try:
-            from openai import OpenAI
-
-            client = OpenAI(api_key=openai.api_key)
-            prompt = f"You are INFANITE, an intelligent assistant. Answer this clearly:\n\n{command}"
-
-            response = client.chat.completions.create(
-                model="gpt-3.5-turbo",
-                messages=[
-                    {"role": "system", "content": "You are INFANITE, a smart, concise, and helpful AI assistant."},
-                    {"role": "user", "content": prompt}
-                ],
-                max_tokens=300,
-                temperature=0.7
-            )
-
-            gpt_answer = response.choices[0].message.content.strip()
-
-        except Exception as e:
-            print("GPT error:", e)
-            gpt_answer = "AI response unavailable — please check your OpenAI API key."
+        if openai.api_key:
+            try:
+                gpt_prompt = (
+                    f"You are INFANITE, an intelligent assistant. "
+                    f"Answer the following query clearly and concisely:\n\nQuery: {command}"
+                )
+                response = openai.ChatCompletion.create(
+                    model="gpt-3.5-turbo",
+                    messages=[
+                        {"role": "system", "content": "You are INFANITE, a smart, concise assistant."},
+                        {"role": "user", "content": gpt_prompt}
+                    ],
+                    max_tokens=300,
+                    temperature=0.7
+                )
+                gpt_answer = response["choices"][0]["message"]["content"].strip()
+            except Exception as e:
+                print("GPT error:", e)
+                gpt_answer = ""
 
         # ------------------------------
-        # Combine Results
+        # 4️⃣ Merge All Results (Chat-style)
         # ------------------------------
-        final_reply = f"INFANITE AI Answer:\n{gpt_answer}"
+        final_parts = []
+
+        if gpt_answer:
+            final_parts.append(f"🤖 *INFANITE AI Answer:*\n{gpt_answer}")
+
+        if wiki_answer:
+            final_parts.append(f"📘 *From Wikipedia:*\n{wiki_answer}")
+
         if google_data:
-            final_reply += "\n\nTop Google Results:\n" + "\n".join(google_data)
+            final_parts.append("🌍 *Top Google Results:*\n" + "\n".join(google_data))
+
+        if not final_parts:
+            final_parts.append("⚠️ Sorry, no results found for your query. Try a different keyword.")
+
+        final_reply = "\n\n".join(final_parts)
 
         return jsonify({"response": final_reply})
 
     except Exception as e:
         print("Error:", e)
-        return jsonify({"response": "Oops! Something went wrong while processing your search."})
-
+        return jsonify({"response": "⚠️ Oops! Something went wrong while processing your search."})
 
 # ------------------------------
-# Run Server
+# 🌦️ Weather API (simple demo)
+# ------------------------------
+@app.route('/weather/<city>')
+def weather(city):
+    try:
+        res = requests.get(f"https://wttr.in/{city}?format=3")
+        return jsonify({"response": f"🌤️ Weather: {res.text}"})
+    except Exception:
+        return jsonify({"response": "⚠️ Could not fetch weather right now."})
+
+# ------------------------------
+# 🖼️ Image Upload Placeholder
+# ------------------------------
+@app.route('/process-image', methods=['POST'])
+def process_image():
+    try:
+        file = request.files.get('image')
+        if not file:
+            return jsonify({"response": "❌ No image uploaded."})
+        return jsonify({"response": f"🖼️ Received image '{file.filename}' (Feature coming soon!)"})
+    except Exception as e:
+        print("Image error:", e)
+        return jsonify({"response": "⚠️ Error processing image."})
+
+# ------------------------------
+# 🎤 Voice Input Placeholder
+# ------------------------------
+@app.route('/voice', methods=['POST'])
+def process_voice():
+    data = request.get_json()
+    voice_text = data.get('voice', '')
+    return jsonify({"response": f"🎤 You said: '{voice_text}' — I'll search that for you!"})
+
+# ------------------------------
+# 🚀 Run Server
 # ------------------------------
 if __name__ == '__main__':
-    print("INFANITE Server Running")
-    print("OpenAI Key Loaded:", bool(openai.api_key))
-    print("News API Loaded:", bool(NEWS_API_KEY))
-    print("Weather API Loaded:", bool(WEATHER_API_KEY))
+    print("✅ INFANITE Server Running")
+    print("🔑 OpenAI Key Loaded:", bool(openai.api_key))
     app.run(host='0.0.0.0', port=5000, debug=True)
