@@ -5,6 +5,7 @@ from googlesearch import search
 import requests
 from bs4 import BeautifulSoup
 import os
+os.environ["OPENAI_API_KEY"] = "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"
 import openai
 
 # ------------------------------
@@ -66,7 +67,6 @@ def process_command():
         # ------------------------------
         if 'weather' in query:
             try:
-                # Extract city name
                 city = query.replace("weather in", "").replace("weather", "").strip()
                 if not city:
                     return jsonify({"response": "Please specify a city, e.g. 'weather in Delhi'."})
@@ -83,7 +83,7 @@ def process_command():
                 wind = res["wind"]["speed"]
 
                 weather_text = (
-                    f"*Weather in {city.title()}*\n"
+                    f"Weather in {city.title()}:\n"
                     f"Temperature: {temp}°C\n"
                     f"Condition: {desc}\n"
                     f"Humidity: {humidity}%\n"
@@ -108,10 +108,10 @@ def process_command():
 
                 articles = res["articles"][:3]
                 news_list = "\n\n".join([
-                    f"**{a['title']}**\n{a.get('description', 'No description.')}\n{a['url']}"
+                    f"{a['title']}\n{a.get('description', 'No description.')}\n{a['url']}"
                     for a in articles
                 ])
-                return jsonify({"response": f"*Top News on {topic.title()}:*\n\n{news_list}"})
+                return jsonify({"response": f"Top News on {topic.title()}:\n\n{news_list}"})
             except Exception as e:
                 print("News error:", e)
                 return jsonify({"response": "Could not fetch news right now."})
@@ -122,7 +122,7 @@ def process_command():
         try:
             wikipedia.set_lang("en")
             summary = wikipedia.summary(command, sentences=3, auto_suggest=True)
-            return jsonify({"response": f"*From Wikipedia:*\n{summary}"})
+            return jsonify({"response": f"From Wikipedia:\n{summary}"})
         except wikipedia.exceptions.DisambiguationError:
             pass
         except wikipedia.exceptions.PageError:
@@ -141,20 +141,20 @@ def process_command():
                     title = soup.title.string.strip() if soup.title else "No Title"
                     desc_tag = soup.find('meta', attrs={'name': 'description'})
                     desc = desc_tag['content'] if desc_tag and 'content' in desc_tag.attrs else "No description available."
-                    google_data.append(f"**{title}**\n{desc}\n{url}\n")
+                    google_data.append(f"{title}\n{desc}\n{url}\n")
                 except Exception:
                     continue
         except Exception:
             pass
 
         # ------------------------------
-        # GPT AI Assistant Response
+        # GPT AI Assistant Response (OpenAI v2+)
         # ------------------------------
         gpt_answer = ""
         try:
             from openai import OpenAI
 
-            client = OpenAI(api_key=openai.api_key)  # Already loaded from env
+            client = OpenAI(api_key=openai.api_key)
             prompt = f"You are INFANITE, an intelligent assistant. Answer this clearly:\n\n{command}"
 
             response = client.chat.completions.create(
@@ -176,9 +176,9 @@ def process_command():
         # ------------------------------
         # Combine Results
         # ------------------------------
-        final_reply = f"*INFANITE AI Answer:*\n{gpt_answer}"
+        final_reply = f"INFANITE AI Answer:\n{gpt_answer}"
         if google_data:
-            final_reply += "\n\n*Top Google Results:*\n" + "\n".join(google_data)
+            final_reply += "\n\nTop Google Results:\n" + "\n".join(google_data)
 
         return jsonify({"response": final_reply})
 
