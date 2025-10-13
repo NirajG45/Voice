@@ -19,7 +19,7 @@ openai.api_key = os.getenv("OPENAI_API_KEY")
 # ------------------------------
 @app.route('/')
 def home():
-    return render_template('infa2.html')
+    return render_template('in.html')
 
 # ------------------------------
 # 🧠 Smart Processing Route
