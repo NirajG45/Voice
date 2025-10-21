@@ -1,323 +1,370 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>INFANITE - AI Assistant</title>
-  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>INFANITE - AI Assistant</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --main-red: darkred;
+            --bg-black: #000;
+            --input-bg: #222;
+            --border-color: #333;
+            --text-white: #fff;
+            --gray: rgba(169, 169, 169, 0.8);
+            --menu-bg: rgba(30, 30, 30, 0.95);
+            --bubble-user: #1a1a1a;
+            --bubble-ai: #333;
+        }
 
-  <style>
-    :root {
-      --main-red: darkred;
-      --bg-black: #000;
-      --input-bg: #222;
-      --border-color: #333;
-      --text-white: #fff;
-      --gray: rgba(169, 169, 169, 0.8);
-      --menu-bg: rgba(30, 30, 30, 0.95);
-      --bubble-user: #1a1a1a;
-      --bubble-ai: #333;
-    }
+        body {
+            background-color: var(--bg-black);
+            color: var(--text-white);
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            box-sizing: border-box;
+        }
 
-    body {
-      background-color: var(--bg-black);
-      color: var(--text-white);
-      font-family: Arial, sans-serif;
-      margin: 0;
-      padding: 0;
-      display: flex;
-      flex-direction: column;
-      min-height: 100vh;
-      box-sizing: border-box;
-    }
+        .main {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            text-align: center;
+        }
 
-    .main {
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      padding: 20px;
-      text-align: center;
-    }
+        .header {
+            transition: all 0.8s ease;
+        }
 
-    .header {
-      transition: all 0.8s ease;
-    }
+        .header.move-top-left {
+            position: fixed;
+            top: 10px;
+            left: 20px;
+            text-align: left;
+            transform: scale(0.8);
+            z-index: 1000;
+        }
 
-    .header.move-top-left {
-      position: fixed;
-      top: 10px;
-      left: 20px;
-      text-align: left;
-      transform: scale(0.8);
-      z-index: 1000;
-    }
+        .header h1 {
+            font-size: clamp(28px, 6vw, 48px);
+            margin: 10px 0;
+            letter-spacing: 2px;
+        }
 
-    .header h1 {
-      font-size: clamp(28px, 6vw, 48px);
-      margin: 10px 0;
-      letter-spacing: 2px;
-    }
+        .header h3 {
+            font-size: clamp(12px, 3vw, 16px);
+            margin: 10px 0;
+            text-transform: uppercase;
+        }
 
-    .header h3 {
-      font-size: clamp(12px, 3vw, 16px);
-      margin: 10px 0;
-      text-transform: uppercase;
-    }
+        .header h3 span {
+            color: var(--main-red);
+            font-weight: bold;
+            text-shadow: 2px 2px 5px rgba(255, 0, 0, 0.8);
+        }
 
-    .header h3 span {
-      color: var(--main-red);
-      font-weight: bold;
-      text-shadow: 2px 2px 5px rgba(255, 0, 0, 0.8);
-    }
+        #in {
+            color: var(--main-red);
+            font-weight: bold;
+            text-shadow: 2px 2px 6px rgb(117, 1, 1);
+        }
 
-    #in {
-      color: var(--main-red);
-      font-weight: bold;
-      text-shadow: 2px 2px 6px rgb(117, 1, 1);
-    }
+        .canvas-wrapper {
+            transition: all 0.8s ease;
+            max-width: 700px;
+            width: 100%;
+            margin: 20px 0;
+        }
 
-    .canvas-wrapper {
-      transition: all 0.8s ease;
-      max-width: 700px;
-      width: 100%;
-      margin: 20px 0;
-    }
+        .canvas-wrapper.move-top-right {
+            position: fixed;
+            top: 15px;
+            right: 15px;
+            width: 150px;
+            height: 150px;
+            z-index: 999;
+            transition: all 0.8s ease;
+        }
 
-    .canvas-wrapper.move-top-right {
-      position: fixed;
-      top: 15px;
-      right: 15px;
-      width: 150px;
-      height: 150px;
-      z-index: 999;
-      transition: all 0.8s ease;
-    }
+        canvas {
+            display: block;
+            width: 100%;
+            height: auto;
+        }
 
-    canvas {
-      display: block;
-      width: 100%;
-      height: auto;
-    }
+        .chat-container {
+            display: flex;
+            flex-direction: column-reverse;
+            width: 100%;
+            max-width: 600px;
+            margin: 0 auto;
+            flex: 1;
+            overflow-y: auto;
+            padding: 10px 20px 0 20px;
+            box-sizing: border-box;
+            min-height: 200px;
+        }
 
-    .chat-container {
-      display: flex;
-      flex-direction: column-reverse;
-      width: 100%;
-      max-width: 600px;
-      margin: 0 auto;
-      flex: 1;
-      overflow-y: auto;
-      padding: 10px 20px 0 20px;
-      box-sizing: border-box;
-      min-height: 200px;
-    }
+        .chat-bubble {
+            padding: 12px 16px;
+            border-radius: 16px;
+            max-width: 85%;
+            word-wrap: break-word;
+            line-height: 1.4;
+            font-size: clamp(14px, 3vw, 16px);
+            white-space: pre-line;
+            margin-bottom: 10px;
+            position: relative;
+        }
 
-    .chat-bubble {
-      padding: 12px 16px;
-      border-radius: 16px;
-      max-width: 85%;
-      word-wrap: break-word;
-      line-height: 1.4;
-      font-size: clamp(14px, 3vw, 16px);
-      white-space: pre-line;
-      margin-bottom: 10px;
-    }
+        .user-bubble {
+            align-self: flex-end;
+            background-color: var(--bubble-user);
+            color: white;
+            cursor: pointer;
+        }
 
-    .user-bubble {
-      align-self: flex-end;
-      background-color: var(--bubble-user);
-      color: white;
-    }
+        .ai-bubble {
+            align-self: flex-start;
+            background-color: var(--bubble-ai);
+            color: #fff;
+        }
 
-    .ai-bubble {
-      align-self: flex-start;
-      background-color: var(--bubble-ai);
-      color: #fff;
-    }
+        .copy-btn {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            font-size: 12px;
+            cursor: pointer;
+            color: var(--gray);
+            background: transparent;
+            border: none;
+        }
 
-    .search-wrapper {
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      padding: 10px 20px 20px 20px;
-      gap: 10px;
-      position: sticky;
-      bottom: 0;
-      background-color: var(--bg-black);
-      z-index: 100;
-    }
+        .copy-btn:hover {
+            color: var(--main-red);
+        }
 
-    .search-container {
-      display: flex;
-      align-items: center;
-      background-color: var(--bg-black);
-      padding: 10px 14px;
-      border-radius: 25px;
-      border: 2px solid var(--border-color);
-      width: 100%;
-      max-width: 600px;
-      gap: 10px;
-      flex-wrap: nowrap;
-      box-sizing: border-box;
-      position: relative;
-    }
+        .search-wrapper {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 10px 20px 20px 20px;
+            gap: 10px;
+            position: sticky;
+            bottom: 0;
+            background-color: var(--bg-black);
+            z-index: 100;
+        }
 
-    .search-container input {
-      flex: 1;
-      border: none;
-      outline: none;
-      padding: 10px;
-      font-size: clamp(14px, 3.5vw, 18px);
-      border-radius: 20px;
-      background-color: var(--input-bg);
-      color: white;
-    }
+        .search-container {
+            display: flex;
+            align-items: center;
+            background-color: var(--bg-black);
+            padding: 10px 14px;
+            border-radius: 25px;
+            border: 2px solid var(--border-color);
+            width: 100%;
+            max-width: 600px;
+            gap: 10px;
+            flex-wrap: nowrap;
+            box-sizing: border-box;
+            position: relative;
+        }
 
-    .burger-btn {
-      font-size: 22px;
-      color: white;
-      cursor: pointer;
-      padding: 8px 12px;
-      border-radius: 10px;
-      transition: 0.3s;
-      background: rgba(255,255,255,0.06);
-      position: relative;
-    }
+        .search-container input {
+            flex: 1;
+            border: none;
+            outline: none;
+            padding: 10px;
+            font-size: clamp(14px, 3.5vw, 18px);
+            border-radius: 20px;
+            background-color: var(--input-bg);
+            color: white;
+        }
 
-    .burger-btn:hover {
-      background: rgba(255,255,255,0.15);
-    }
+        .burger-btn {
+            font-size: 22px;
+            color: white;
+            cursor: pointer;
+            padding: 8px 12px;
+            border-radius: 10px;
+            transition: 0.3s;
+            background: rgba(255, 255, 255, 0.06);
+            position: relative;
+        }
 
-    .menu {
-      position: absolute;
-      bottom: 110%;
-      right: 0;
-      background: rgba(30,30,30,0.95);
-      border-radius: 15px;
-      display: none;
-      flex-direction: column;
-      gap: 10px;
-      padding: 10px;
-      width: 160px;
-      backdrop-filter: blur(10px);
-      z-index: 1000;
-    }
+        .burger-btn:hover {
+            background: rgba(255, 255, 255, 0.15);
+        }
 
-    .menu.active { display: flex; }
+        .menu {
+            position: absolute;
+            bottom: 110%;
+            right: 0;
+            background: var(--menu-bg);
+            border-radius: 15px;
+            display: none;
+            flex-direction: column;
+            gap: 10px;
+            padding: 10px;
+            width: 160px;
+            backdrop-filter: blur(10px);
+            z-index: 1000;
+        }
 
-    .menu button {
-      background: none;
-      border: none;
-      color: var(--text-white);
-      font-size: 16px;
-      padding: 10px;
-      border-radius: 10px;
-      cursor: pointer;
-      text-align: left;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      transition: 0.3s;
-    }
+        .menu.active {
+            display: flex;
+        }
 
-    .menu button:hover {
-      background: rgba(255, 0, 0, 0.1);
-      color: var(--main-red);
-      transform: translateX(3px);
-    }
+        .menu button {
+            background: none;
+            border: none;
+            color: var(--text-white);
+            font-size: 16px;
+            padding: 10px;
+            border-radius: 10px;
+            cursor: pointer;
+            text-align: left;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: 0.3s;
+        }
 
-    @media (max-width:600px){
-      .canvas-wrapper.move-top-right { width:120px; height:120px; top:10px; right:10px;}
-      .header.move-top-left {top:8px; left:10px; transform:scale(0.9);}
-      .menu{width:140px;}
-    }
-  </style>
+        .menu button:hover {
+            background: rgba(255, 0, 0, 0.1);
+            color: var(--main-red);
+            transform: translateX(3px);
+        }
+
+        @media(max-width:600px) {
+            .canvas-wrapper.move-top-right {
+                width: 120px;
+                height: 120px;
+                top: 10px;
+                right: 10px;
+            }
+
+            .header.move-top-left {
+                top: 8px;
+                left: 10px;
+                transform: scale(0.9);
+            }
+
+            .menu {
+                width: 140px;
+            }
+        }
+    </style>
 </head>
 
 <body>
-  <div class="main">
-    <div class="header" id="header">
-      <h1><span id="in">IN</span>FANITE</h1>
-      <h3>Welcome to the <span>Future</span></h3>
+    <div class="main">
+        <div class="header" id="header">
+            <h1><span id="in">IN</span>FANITE</h1>
+            <h3>Welcome to the <span>Future</span></h3>
+        </div>
+
+        <div class="canvas-wrapper" id="canvasWrapper">
+            <canvas id="infinityCanvas"></canvas>
+        </div>
+
+        <div class="chat-container" id="output"></div>
     </div>
 
-    <div class="canvas-wrapper" id="canvasWrapper">
-      <canvas id="infinityCanvas"></canvas>
+    <div class="search-wrapper">
+        <div class="search-container">
+            <input type="text" id="search-box" placeholder="Ask INFANITE..." />
+            <div class="burger-btn" id="burgerMenu"><i class="fa fa-bars"></i></div>
+            <div class="menu" id="menu">
+                <button onclick="startVoiceSearch()"><i class="fa fa-microphone"></i> Voice</button>
+                <button onclick="startImageSearch()"><i class="fa fa-camera"></i> Camera</button>
+                <button onclick="activateInfinity()"><i class="fa fa-infinity"></i> INFANITE</button>
+                <button onclick="startCustomSearch()"><i class="fa fa-search"></i> Search</button>
+            </div>
+        </div>
     </div>
 
-    <div class="chat-container" id="output"></div>
-  </div>
+    <script>
+        // Infinity canvas
+        const canvas = document.getElementById("infinityCanvas");
+        const ctx = canvas.getContext("2d");
+        function resizeCanvas() { const rect = canvas.getBoundingClientRect(); canvas.width = rect.width; canvas.height = rect.height; }
+        let angle = 0, trail = [], maxTrail = 160;
+        function drawInfinity() {
+            resizeCanvas(); ctx.clearRect(0, 0, canvas.width, canvas.height);
+            const w = canvas.width, h = canvas.height, scale = Math.min(w, h) / 2.2, dotRadius = Math.max(2, scale * 0.045);
+            ctx.lineWidth = 2; ctx.strokeStyle = "rgba(169,169,169,0.8)"; ctx.beginPath();
+            for (let t = 0; t <= Math.PI * 2; t += 0.02) { const x = scale * Math.sin(t) / (1 + Math.cos(t) ** 2) + w / 2; const y = scale * Math.sin(t) * Math.cos(t) / (1 + Math.cos(t) ** 2) + h / 2; if (t === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y); }
+            ctx.stroke();
+            const t = angle % (Math.PI * 2), x = scale * Math.sin(t) / (1 + Math.cos(t) ** 2) + w / 2, y = scale * Math.sin(t) * Math.cos(t) / (1 + Math.cos(t) ** 2) + h / 2;
+            trail.push({ x, y }); if (trail.length > maxTrail) trail.shift();
+            for (let i = 0; i < trail.length; i++) { const p = trail[i], opacity = (i + 1) / trail.length; ctx.beginPath(); ctx.fillStyle = `rgba(169,169,169,${opacity})`; ctx.shadowBlur = 10; ctx.shadowColor = "rgba(169,169,169,0.4)"; ctx.arc(p.x, p.y, dotRadius, 0, 2 * Math.PI); ctx.fill(); ctx.shadowBlur = 0; }
+            angle += 0.015; requestAnimationFrame(drawInfinity);
+        }
+        drawInfinity(); window.addEventListener("resize", resizeCanvas);
 
-  <div class="search-wrapper">
-    <div class="search-container">
-      <input type="text" id="search-box" placeholder="Ask INFANITE..." />
-      <div class="burger-btn" id="burgerMenu"><i class="fa fa-bars"></i></div>
-      <div class="menu" id="menu">
-        <button onclick="startVoiceSearch()"><i class="fa fa-microphone"></i> Voice</button>
-        <button onclick="startImageSearch()"><i class="fa fa-camera"></i> Camera</button>
-        <button onclick="activateInfinity()"><i class="fa fa-infinity"></i> INFANITE</button>
-        <button onclick="startCustomSearch()"><i class="fa fa-search"></i> Search</button>
-      </div>
-    </div>
-  </div>
+        // Chat & Search
+        const output = document.getElementById("output");
+        let history = [];
 
-  <script>
-    // Infinity animation
-    const canvas = document.getElementById("infinityCanvas");
-    const ctx = canvas.getContext("2d");
-    function resizeCanvas(){ const rect = canvas.getBoundingClientRect(); canvas.width = rect.width; canvas.height = rect.height; }
-    let angle=0, trail=[], maxTrail=160;
-    function drawInfinity(){
-      resizeCanvas();
-      ctx.clearRect(0,0,canvas.width,canvas.height);
-      const w=canvas.width,h=canvas.height, scale=Math.min(w,h)/2.2, dotRadius=Math.max(2,scale*0.045);
-      ctx.lineWidth=2; ctx.strokeStyle="rgba(169, 169, 169, 0.8)"; ctx.beginPath();
-      for(let t=0;t<=Math.PI*2;t+=0.02){ const x=scale*Math.sin(t)/(1+Math.cos(t)**2)+w/2; const y=scale*Math.sin(t)*Math.cos(t)/(1+Math.cos(t)**2)+h/2; if(t===0)ctx.moveTo(x,y); else ctx.lineTo(x,y);}
-      ctx.stroke();
-      const t=angle%(Math.PI*2), x=scale*Math.sin(t)/(1+Math.cos(t)**2)+w/2, y=scale*Math.sin(t)*Math.cos(t)/(1+Math.cos(t)**2)+h/2;
-      trail.push({x,y}); if(trail.length>maxTrail)trail.shift();
-      for(let i=0;i<trail.length;i++){const point=trail[i],opacity=(i+1)/trail.length; ctx.beginPath(); ctx.fillStyle=`rgba(169,169,169,${opacity})`; ctx.shadowBlur=10; ctx.shadowColor="rgba(169,169,169,0.4)"; ctx.arc(point.x,point.y,dotRadius,0,2*Math.PI); ctx.fill(); ctx.shadowBlur=0;}
-      angle+=0.015; requestAnimationFrame(drawInfinity);
-    }
-    drawInfinity(); window.addEventListener("resize", resizeCanvas);
+        function addBubble(text, isUser) {
+            const div = document.createElement("div");
+            div.className = "chat-bubble " + (isUser ? "user-bubble" : "ai-bubble");
+            div.innerHTML = text.replace(/\n/g, "<br>").replace(/(https?:\/\/[^\s]+)/g, '<a href="$1" target="_blank">$1</a>');
 
-    // Chat & Search
-    const output = document.getElementById("output");
-    async function startCustomSearch(){
-      const query = document.getElementById("search-box").value.trim();
-      const header=document.getElementById("header"), canvasWrapper=document.getElementById("canvasWrapper");
-      if(query===""){ alert("Type something first!"); return; }
-      header.classList.add("move-top-left"); canvasWrapper.classList.add("move-top-right");
-      addBubble(query,true);
-      try{
-        const res = await fetch("/process",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({command:query})});
-        const data = await res.json();
-        addBubble(data.response,false);
-      } catch(err){
-        console.error(err); addBubble("Could not connect to INFANITE Assistant.",false);
-      }
-      document.getElementById("search-box").value="";
-    }
+            if (!isUser) {
+                const copyBtn = document.createElement("button");
+                copyBtn.className = "copy-btn";
+                copyBtn.innerHTML = '<i class="fa fa-copy"></i>';
+                copyBtn.onclick = () => navigator.clipboard.writeText(text);
+                div.appendChild(copyBtn);
+            } else {
+                div.onclick = () => document.getElementById("search-box").value = text;
+            }
 
-    function addBubble(text,isUser){
-      const div=document.createElement("div");
-      div.className="chat-bubble "+(isUser?"user-bubble":"ai-bubble");
-      div.innerHTML = text.replace(/\n/g,"<br>").replace(/(https?:\/\/[^\s]+)/g,'<a href="$1" target="_blank">$1</a>');
-      output.prepend(div);
-    }
+            output.prepend(div);
+            output.scrollTop = 0;
 
-    document.getElementById("search-box").addEventListener("keydown",e=>{if(e.key==="Enter"){e.preventDefault(); startCustomSearch();}});
+            if (isUser) history.push(text);
+        }
 
-    // Burger dropdown
-    const burgerMenu=document.getElementById("burgerMenu"), menu=document.getElementById("menu");
-    burgerMenu.addEventListener("click",()=>{menu.classList.toggle("active");});
-    document.addEventListener("click",e=>{if(!burgerMenu.contains(e.target)&&!menu.contains(e.target)){menu.classList.remove("active");}});
+        async function startCustomSearch() {
+            const query = document.getElementById("search-box").value.trim();
+            const header = document.getElementById("header"), canvasWrapper = document.getElementById("canvasWrapper");
+            if (query === "") { alert("Type something first!"); return; }
+            header.classList.add("move-top-left"); canvasWrapper.classList.add("move-top-right");
+            addBubble(query, true);
 
-    function startVoiceSearch(){ addBubble("Voice search activated...",false);}
-    function startImageSearch(){ addBubble("Image search feature coming soon...",false);}
-    function activateInfinity(){ addBubble("INFANITE Voice Assistant activated.",false);}
-  </script>
+            try {
+                const res = await fetch("/process", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ command: query }) });
+                const data = await res.json();
+                addBubble(data.response, false);
+            } catch (err) { console.error(err); addBubble("Could not connect to INFANITE Assistant.", false); }
+            document.getElementById("search-box").value = "";
+        }
+
+        document.getElementById("search-box").addEventListener("keydown", e => { if (e.key === "Enter") { e.preventDefault(); startCustomSearch(); } });
+
+        // Burger menu
+        const burgerMenu = document.getElementById("burgerMenu"), menu = document.getElementById("menu");
+        burgerMenu.addEventListener("click", () => { menu.classList.toggle("active"); });
+        document.addEventListener("click", e => { if (!burgerMenu.contains(e.target) && !menu.contains(e.target)) menu.classList.remove("active"); });
+
+        function startVoiceSearch() { addBubble("Voice search activated...", false); }
+        function startImageSearch() { addBubble("Image search feature coming soon...", false); }
+        function activateInfinity() { addBubble("INFANITE Voice Assistant activated.", false); }
+    </script>
 </body>
+
 </html>
